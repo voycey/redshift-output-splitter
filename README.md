@@ -29,9 +29,12 @@ The following arguments are accepted by this script:
     * **-q** | **--queue**, 'Name of the Queue to watch', required=True
     * **-d** | **--destination**, 'Destination bucket', required=True
     * **-i** | **--input**, 'Input File Type', default='gz'
-    * **-c** | **--chunk**, 'Chunk Size to split file', default='100M'
+    * **-c** | **--chunk**, 'Chunk Size to split (uncompressed) file in Megabytes', default='200'
+    * **-H** | **--headers**, 'The file contains headers that should be repeated onto each chunk'
+    * **-HL** | **--header-list**, 'A quoted list of headers to prepend to each chunked file'
     * **-r** | **--region**, 'AWS Region of the bucket', default='us-west-2'
     * **-f** | **--filename**, 'Filename Prefix', default='redshift'
+    * **-k** | **--keep-files**, 'Do not clean up temporary files (Good for debugging)', default='redshift'
     * **-z** | **--zip**, 'Compression output to use, default='bzip2'
 
 Example:
@@ -46,15 +49,38 @@ Example:
 	= Details from SQS =
 	Bucket: my-bucket-name
 	File: temp/redshift000.gz
+	Size: 113859318
 	= Retrieving S3 file =
 	= Unzipping S3 file =
 	= Splitting file into chunks =
+	= Adding Headers to Splits =
 	= Rezipping files =
 	= Deleting source files =
 	= Creating destination folder =
 	= Uploading files =
+
 	File uploaded to https://s3.us-west-2.amazonaws.com/my-bucket-name/00000000-000000/redshift-part-00.bz2
 	...
 	File uploaded to https://s3.us-west-2.amazonaws.com/my-bucket-name/00000000-00000/redshift-part-27.bz2
-	= Marking complete in SQS =
+	
 	= Cleaning up =
+	= Marking complete in SQS =
+	
+## Notes about Headers
+Redshift doesn't offer an option to add headers to the output, there are various hacks around this (none of which seem very pleasant to be honest) so I have included a couple of options in this script should you require them:
+	
+	**-H** or **---headers**-  This tells the script that there are headers in the first row of the file, this will then take that first line, and prepend it to every chunk created
+	**--HL**- or **---header-list**-  This takes a quoted list of column names as its argument (e.g: "list | of | headers") and then prepends it to the file before chunking; If used with -H above it will write this header line to each chunk (be careful that the file doesn't already contain a header line direct from Redshift in this case)
+
+## Examples
+	python split-file-stream.py -q redshift-splitting -d redshift-processed
+
+Simplest example: will monitor the ``redshift-splitting`` SQS queue for an S3 file and output it in 200MB chunks (pre-compressed) to the ``redshift-processed`` bucket
+
+	python split-file-stream.py -q redshift-splitting -d redshift-processed -c 50 -H -HL "utc_timestamp | first_name | last_name | address1 | city | ip_address"
+	
+Runs against the queue called ``redshift-splitting`` into destination bucket ``redshift-processed`` with a pre-compressed chunk size of 50MB 
+
+## Gotchas
+
+If the file size is greater than 6.8GB Redshift automatically splits it, as such 2 messages will be posted to the SQS queue and 2 sets of data will be processed. I have not tested this yet as I dont have any data that is > 6.8GB compresed but as the script outputs it to a date folder (including minutes and seconds) it should handle it fine.
