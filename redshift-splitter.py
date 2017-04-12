@@ -157,7 +157,7 @@ for message in queue.receive_messages(MaxNumberOfMessages=1,WaitTimeSeconds=10):
 	sync_to_s3(folder, args['region'], args['destination'], redshift_folder)
 
 
-	if args['keep_files']:
+	if not args['keep_files']:
 		# Clean up if requested
 		print("= Cleaning up =")
 
