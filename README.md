@@ -1,3 +1,7 @@
+[![Github All Releases](https://img.shields.io/github/downloads/voycey/redshift-output-splitter/total.svg)]()
+[![GitHub contributors](https://img.shields.io/github/contributors/voycey/redshift-output-splitter.svg)]()
+
+
 # Redshift output / unload splitter
 Redshift is fantastic, but it doesn't support splitting the final unloaded file(s) into customisable size segments (as of Apr 2017 anyway), your choices are to leave parallel on and get a file per node, or turn parallel off and get one mega file.
 
