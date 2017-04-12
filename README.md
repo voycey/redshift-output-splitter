@@ -17,10 +17,14 @@ Well, in our case the files created were too large for Lambda (it has a 512MB sp
  1. Create an SQS queue
  2. Create a trigger on the bucket you want to monitor for new files to be added to, specify the SQS queue you created above
  3. Ensure that when you UNLOAD in Redshift you specify this bucket
+ 
+## Requirements
+ 1. Python boto3
+ 2. Linux (Might work on MacOS - no idea)
 
 ## Script Installation
  1. Clone this repo to a location of your choice on the server you want to process the file on
- 2.  Setup a cron job to run this as often as you want
+ 2. Setup a cron job to run this as often as you want
 
 ## Syntax
 The following arguments are accepted by this script:
